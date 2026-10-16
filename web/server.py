@@ -27,6 +27,16 @@ SESSION = secrets.token_urlsafe(32)
 BUSY = threading.Lock()
 JOBS = {}
 
+class WebClient(Client):
+    """Retry only transient transport failures for this read-only web workflow."""
+    def rpc(self, method, params, notification=False):
+        for attempt in range(3):
+            try:return super().rpc(method,params,notification)
+            except RuntimeError as exc:
+                transient=any(x in str(exc) for x in ('网络连接失败','HTTP 502','HTTP 503','HTTP 504'))
+                if not transient or attempt==2:raise
+                time.sleep(attempt+1)
+
 def validate_request(body):
     if not isinstance(body,dict):raise ValueError('请求必须为对象')
     if body.get('source') not in ('demo','live') or body.get('mode') not in ('pickup','delivery'):
@@ -74,7 +84,7 @@ def live_snapshot(body,progress):
     if not config.exists():raise ValueError('尚未配置真实门店，请让助手按 live-workflow.md 准备本机快照')
     data=json.loads(config.read_text()); data['demand']=body['demand']; data['max_extra_units']=1 if body['extras'] else 0
     token=os.environ.get('MCD_MCP_TOKEN') or (private/'mcd-token').read_text().strip()
-    client=Client(token); client.initialize()
+    client=WebClient(token); client.initialize()
     context=data['context']; context['service_time']='immediate'
     args={'storeCode':context['store_id'],'orderType':1 if mode=='pickup' else 2,'beType':1 if mode=='pickup' else 2}
     if mode=='delivery':
@@ -180,7 +190,11 @@ class Handler(BaseHTTPRequestHandler):
         jid=secrets.token_hex(16);JOBS[jid]={'status':'running','message':'正在准备比较'}
         def run():
             try:JOBS[jid]={'status':'done','result':compare(body,lambda msg:JOBS[jid].update(message=msg))}
-            except Exception:JOBS[jid]={'status':'error','error':'本轮查询未完成。请检查本机连接、门店营业时间或稍后重试；没有使用旧报价代替。'}
+            except Exception as exc:
+                import traceback
+                frames=[f'{Path(f.filename).name}:{f.lineno}' for f in traceback.extract_tb(exc.__traceback__)]
+                print('Query failed:',type(exc).__name__,','.join(frames),flush=True)
+                JOBS[jid]={'status':'error','error':'本轮查询未完成。请检查本机连接、门店营业时间或稍后重试；没有使用旧报价代替。'}
             finally:BUSY.release()
         threading.Thread(target=run,daemon=True).start();self.reply(202,{'job':jid})
 

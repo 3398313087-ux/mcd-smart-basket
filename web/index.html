@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>麦麦省心凑单 · 想吃的不变，买得更划算</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body><header><a class="brand" href="/" aria-label="麦麦省心凑单首页"><span class="brand-icon">m<span>+</span></span>麦麦省心凑单<span class="beta">实验室</span></a><span class="header-note">个人开发 · 非麦当劳官方产品</span></header>
+<main><section class="intro"><div><p class="eyebrow">YOUR CRAVINGS. A SMARTER BASKET.</p><h1>想吃的<span class="underline">不变</span>，<br>怎么买，我们来算。</h1><p class="subtitle">单点、套餐、已有优惠券一起比。<br class="mobile">把清单买齐，也把每一块钱算清楚。</p></div><div class="hero-note"><span>省的是钱，<br>不是想吃的那一口。</span><i>↘</i></div></section>
+<div class="workspace"><section class="builder panel"><div class="section-heading"><div><span class="step">01</span><h2>今天想吃什么</h2></div><button id="reset" class="text-button">恢复示例</button></div><p class="muted small">规格和数量由你决定，我们不偷偷换。</p><div id="food-list" class="food-list"></div>
+<div class="divider"></div><h3>怎么吃</h3><div class="segmented" aria-label="用餐方式"><button data-mode="pickup" aria-pressed="true">↗ 到店自取</button><button data-mode="delivery" aria-pressed="false">⌂ 外送到家</button></div><div class="location"><span>◎</span><div><strong id="store">虚构演示门店</strong><p id="address">演示数据不使用你的地址</p></div></div>
+<label class="extra-toggle"><span><strong>多买一点也可以</strong><small>最多多 1 份，只有更便宜才推荐</small></span><input id="extras" type="checkbox" role="switch" checked></label>
+<div class="source-control"><label for="source">比较数据</label><select id="source"><option value="demo">模拟演示 · 不是真实价格</option><option value="live">真实查询 · 本机麦当劳账号</option></select></div><p id="scope-note" class="scope-note">无需登录，先试试不同买法。演示中的食品与价格均为模拟。</p>
+<button id="compare" class="primary">帮我算算 <span>→</span></button><p class="no-order">只比较价格，不会创建订单或付款</p></section>
+<section class="results"><div class="section-heading result-heading"><div><span class="step">02</span><h2>把钱花在想吃的上</h2></div><span id="data-tag" class="tag">模拟演示</span></div>
+<div id="status" role="status" aria-live="polite"></div><div id="result-content"><div class="empty panel"><div class="basket-art"><span>🍔</span><span>🍟</span><span>🥤</span><div class="basket-bottom">✓ 清单不变</div></div><h2>把清单交给我们。</h2><p>选好左边的食品，点击「帮我算算」。<br>我们会把刚好买齐的买法排好，<br>多买才省钱的选择，另外告诉你。</p><div class="empty-chips"><span>套餐补单</span><span>已有优惠券</span><span>含配送及包装费</span></div></div></div>
+<div class="principles"><div><b>01 / 不偷换</b><p>食品、规格、数量保持一致</p></div><div><b>02 / 看实付</b><p>费用计入总额，不只看标价</p></div><div><b>03 / 说清楚</b><p>比较范围和多买食品都展示</p></div></div></section></div>
+<footer><span>麦麦省心凑单 / 把复杂留给计算，把简单留给吃饭。</span><span>仅比较已收集的套餐配置与单笔订单</span></footer></main></body></html>
