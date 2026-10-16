@@ -1,0 +1,25 @@
+{
+  "checked_on": "2026-10-16",
+  "source": "live",
+  "endpoint": "https://mcp.mcd.cn",
+  "authentication": "succeeded",
+  "discovered_tool_count": 35,
+  "menu_validation": "passed for pickup and delivery",
+  "price_validation": "11 successful official quotes, see live-price-evidence.json",
+  "orders_created": 0,
+  "privacy": "Token、地址、手机号、用户标识和原始追踪编号均未包含在此公开记录",
+  "initial_checks": [
+    {
+      "tool": "delivery-query-addresses",
+      "business_success": true,
+      "address_count": 0
+    },
+    {
+      "tool": "query-nearby-stores",
+      "scenario": "pickup favorites",
+      "business_success": false,
+      "reason": "收藏餐厅列表为空，需要城市和关键词"
+    }
+  ],
+  "initial_checks_note": "初次查询时地址为空，用户后续已添加地址并完成两种方式测试。"
+}
