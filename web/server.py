@@ -162,7 +162,7 @@ class Handler(BaseHTTPRequestHandler):
         raw=json.dumps(body,ensure_ascii=False).encode() if kind=='application/json' else body
         self.send_response(status);self.send_header('Content-Type',kind+'; charset=utf-8');self.send_header('Content-Length',str(len(raw)))
         self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff')
-        self.send_header('Content-Security-Policy',"default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'")
+        self.send_header('Content-Security-Policy',"default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data: https://menu-img.mcd.cn; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'")
         self.end_headers();self.wfile.write(raw)
     def valid_host(self):return self.headers.get('Host') in (f'127.0.0.1:{self.server.server_port}',f'localhost:{self.server.server_port}')
     def do_GET(self):
