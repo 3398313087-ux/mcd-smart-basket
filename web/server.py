@@ -39,7 +39,7 @@ class WebClient(Client):
 
 def validate_request(body):
     if not isinstance(body,dict):raise ValueError('请求必须为对象')
-    if body.get('source') not in ('demo','live') or body.get('mode') not in ('pickup','delivery'):
+    if body.get('source') not in ('demo','live') or body.get('mode') not in ('pickup','delivery','both'):
         raise ValueError('请选择数据来源和用餐方式')
     demand = body.get('demand')
     if not isinstance(demand,dict) or not demand or any(k not in FOODS or type(v) is not int or not 1 <= v <= 2 for k,v in demand.items()):
@@ -119,12 +119,18 @@ def live_snapshot(body,progress):
     return data,client,skipped
 
 def public_result(data,result):
-    names={o['id']:o['name'] for o in data['offers']}
+    offers={o['id']:o for o in data['offers']}
+    def item(c):
+        o=offers[c['offer_id']]
+        return {'name':o['name'],'quantity':c['quantity'],
+                'contents':[{'name':FOODS.get(k,data['labels'].get(k,k)),'quantity':v*c['quantity']} for k,v in o['items'].items()],
+                'uses_coupon':bool(o.get('coupon_usage'))}
     def plan(p):
         q=p['quote']; total=q['total_cents']; baseline=result['baseline_cents']
-        return {'items':[{'name':names[c['offer_id']],'quantity':c['quantity']} for c in p['cart']],
+        return {'items':[item(c) for c in p['cart']],
                 'extras':[{'name':data['labels'].get(k,k),'quantity':v} for k,v in p['extras'].items()],
                 'total':total,'delivery':q['delivery_fee_cents'],'packing':q['packaging_fee_cents'],
+                'food_total':total-q['delivery_fee_cents']-q['packaging_fee_cents'],
                 'saving':None if baseline is None else baseline-total,'quoted_at':q['quoted_at']}
     exact=result['exact']; best=exact[0]['quote']['total_cents'] if exact else None
     extras=[p for p in result['extra'] if best is None or p['quote']['total_cents']<best]
@@ -135,6 +141,8 @@ def public_result(data,result):
 
 def compare(body,progress=lambda _:None):
     validate_request(body)
+    if body['mode']=='both':
+        return compare_both(body,progress)
     if body['source']=='demo':
         data=snapshot(body['mode']);data['demand']=body['demand'];data['max_extra_units']=int(body['extras'])
         search=enumerate_plans(data);quotes=simulate_quotes(data,search);skipped=0
@@ -155,6 +163,17 @@ def compare(body,progress=lambda _:None):
             quotes['quotes'].append(normalize_quote(p['id'],request,response,str(evidence)))
     result=public_result(data,rank_quotes(data,search,quotes));result['skipped']=skipped
     return result
+
+def compare_both(body,progress):
+    # Each channel has its own menu, coupons, fees and quote context.
+    results={};errors={}
+    for mode,label in [('pickup','到店取餐'),('delivery','麦乐送')]:
+        try:
+            results[mode]=compare(dict(body,mode=mode),lambda msg:progress(label+' · '+msg))
+        except Exception:
+            # Do not disclose upstream responses, addresses or credentials.
+            errors[mode]='本轮查询未完成，请单独重试'
+    return {'source':body['source'],'mode':'both','results':results,'errors':errors}
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args): pass
