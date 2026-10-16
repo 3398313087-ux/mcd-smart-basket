@@ -29,9 +29,9 @@
 python3 examples/demo.py
 ```
 
-Mac 上也可双击根目录的 `查看演示.command`。已有演示输出见 [demo-results.txt](examples/demo-results.txt)。
+Mac 上可运行 `bash 查看演示.command`。网页上传的脚本可能没有执行权限；需要双击时，先运行 `chmod +x 查看演示.command 连接麦当劳.command`。已有演示输出见 [demo-results.txt](examples/demo-results.txt)。
 
-开通 Token 后，Mac 用户可双击 `连接麦当劳.command`，在终端隐藏输入 Token；验证成功后保存在本项目 `private/mcd-token`，仅当前用户可读写，不进入 Git。命令行等价入口是 `python3 skills/mcd-smart-basket/scripts/mcp_readonly.py setup`。该文件供后续查询脚本自动读取；删除它即可移除本地保存的凭据。
+开通 Token 后，Mac 用户可运行 `bash 连接麦当劳.command`，在终端隐藏输入 Token；验证成功后保存在本项目 `private/mcd-token`，仅当前用户可读写，不进入 Git。命令行等价入口是 `python3 skills/mcd-smart-basket/scripts/mcp_readonly.py setup`。该文件供后续查询脚本自动读取；删除它即可移除本地保存的凭据。
 
 ## 演示结果
 
