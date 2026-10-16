@@ -14,7 +14,28 @@ class WebTests(unittest.TestCase):
         b=self.body();b['extras']=False;r=web.compare(b);self.assertFalse(r['extras'])
     def test_changed_quantities_recompute(self):
         b=self.body();b['demand']={'nuggets-5':2};r=web.compare(b)
-        self.assertEqual(r['exact'][0]['items'],[{'name':'5块鸡块单点','quantity':2}])
+        self.assertEqual(r['exact'][0]['items'][0]['quantity'],2)
+        self.assertEqual(r['exact'][0]['items'][0]['contents'],[{'name':'5块麦乐鸡','quantity':2}])
+    def test_both_channels_use_independent_pricing(self):
+        b=self.body();b['mode']='both';r=web.compare(b)
+        self.assertEqual(r['results']['pickup']['exact'][0]['total'],3900)
+        self.assertEqual(r['results']['delivery']['exact'][0]['total'],4700)
+        self.assertTrue(r['results']['pickup']['exact'][0]['items'][0]['uses_coupon'] or r['results']['pickup']['exact'][0]['items'][1]['uses_coupon'])
+        self.assertFalse(any(i['uses_coupon'] for i in r['results']['delivery']['exact'][0]['items']))
+    def test_both_keeps_success_when_other_channel_fails(self):
+        from unittest.mock import patch
+        with patch.object(web,'compare',side_effect=[{'exact':[]},RuntimeError('private-token-address')]):
+            r=web.compare_both(dict(self.body(),mode='both'),lambda _:None)
+        self.assertIn('pickup',r['results']);self.assertIn('delivery',r['errors'])
+        self.assertNotIn('private-token-address',str(r))
+    def test_receipt_covers_target_and_fees_are_not_added_twice(self):
+        r=web.compare(self.body());p=r['exact'][0]
+        from collections import Counter
+        contents=Counter()
+        for item in p['items']:
+            for food in item['contents']:contents[food['name']]+=food['quantity']
+        self.assertEqual(contents,{name:1 for name in web.FOODS.values()})
+        self.assertEqual(p['food_total']+p['delivery']+p['packing'],p['total'])
     def test_empty_and_malformed_demand(self):
         for d in [{},{'burger':True},{'burger':3},{'unknown':1},{'burger':-1}]:
             b=self.body();b['demand']=d
