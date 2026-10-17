@@ -1,0 +1,297 @@
+[
+  {
+    "id": "burger",
+    "name": "麦辣鸡腿汉堡",
+    "spec": "1个",
+    "label": "麦辣鸡腿汉堡",
+    "category": "burger",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20250420/product/MS_1440_600_0_1744772198163.png",
+    "aliases": [
+      "麦辣鸡腿汉堡"
+    ],
+    "codes": {
+      "pickup": "1440",
+      "delivery": "901440"
+    },
+    "demo_price": 2500,
+    "match": [
+      "麦辣鸡腿"
+    ]
+  },
+  {
+    "id": "fries-medium",
+    "name": "薯条",
+    "spec": "中份",
+    "label": "中薯条",
+    "category": "snack",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20250423/product/MS_4810_600_1745199801147.png",
+    "aliases": [
+      "中薯条",
+      "薯条中"
+    ],
+    "codes": {
+      "pickup": "4810",
+      "delivery": "501205"
+    },
+    "demo_price": 1200,
+    "match": [
+      "薯条"
+    ]
+  },
+  {
+    "id": "cola-medium",
+    "name": "可口可乐",
+    "spec": "中杯",
+    "label": "中杯可乐",
+    "category": "drink",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/ProductPool/product/MS_9900008751_600.png",
+    "aliases": [
+      "可乐中杯",
+      "可口可乐中杯",
+      "可口可乐(中杯)"
+    ],
+    "codes": {
+      "pickup": "9900008751",
+      "delivery": "903050"
+    },
+    "demo_price": 1000,
+    "match": []
+  },
+  {
+    "id": "nuggets-5",
+    "name": "麦乐鸡",
+    "spec": "5块",
+    "label": "5块麦乐鸡",
+    "category": "snack",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260529/product/MS_1401_600.png",
+    "aliases": [
+      "麦乐鸡5块"
+    ],
+    "codes": {
+      "pickup": "1401",
+      "delivery": "901401"
+    },
+    "demo_price": 1300,
+    "match": [
+      "麦乐鸡"
+    ]
+  },
+  {
+    "id": "mcchicken",
+    "name": "麦香鸡",
+    "spec": "1个",
+    "label": "麦香鸡",
+    "category": "burger",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260520/product/MS_1450_600.png",
+    "aliases": [
+      "麦香鸡"
+    ],
+    "codes": {
+      "pickup": "1450",
+      "delivery": "901450"
+    },
+    "demo_price": 1800,
+    "match": [
+      "麦香鸡"
+    ]
+  },
+  {
+    "id": "filet",
+    "name": "麦香鱼",
+    "spec": "1个",
+    "label": "麦香鱼",
+    "category": "burger",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260520/product/MS_1600_600.png",
+    "aliases": [
+      "麦香鱼"
+    ],
+    "codes": {
+      "pickup": "1600",
+      "delivery": "901600"
+    },
+    "demo_price": 2400,
+    "match": [
+      "麦香鱼"
+    ]
+  },
+  {
+    "id": "double-cheese",
+    "name": "双层吉士汉堡",
+    "spec": "1个",
+    "label": "双层吉士汉堡",
+    "category": "burger",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260101/product/MS_1120_600.png",
+    "aliases": [
+      "双层吉士汉堡"
+    ],
+    "codes": {
+      "pickup": "1120",
+      "delivery": "901120"
+    },
+    "demo_price": 2300,
+    "match": [
+      "双层吉士"
+    ]
+  },
+  {
+    "id": "angus-bacon",
+    "name": "培根安格斯厚牛堡",
+    "spec": "1个",
+    "label": "培根安格斯厚牛堡",
+    "category": "burger",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20251022/product/MS_511781_600.png",
+    "aliases": [
+      "培根安格斯厚牛堡"
+    ],
+    "codes": {
+      "pickup": "511781",
+      "delivery": "902060"
+    },
+    "demo_price": 3400,
+    "match": [
+      "培根安格斯"
+    ]
+  },
+  {
+    "id": "angus-cheese",
+    "name": "芝士安格斯厚牛堡",
+    "spec": "1个",
+    "label": "芝士安格斯厚牛堡",
+    "category": "burger",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20251022/product/MS_511782_600.png",
+    "aliases": [
+      "芝士安格斯厚牛堡"
+    ],
+    "codes": {
+      "pickup": "511782",
+      "delivery": "902061"
+    },
+    "demo_price": 3100,
+    "match": [
+      "芝士安格斯"
+    ]
+  },
+  {
+    "id": "wings-2",
+    "name": "麦辣鸡翅",
+    "spec": "2块",
+    "label": "麦辣鸡翅（2块）",
+    "category": "snack",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260219/product/MS_1700_600.png",
+    "aliases": [
+      "麦辣鸡翅2块"
+    ],
+    "codes": {
+      "pickup": "1700",
+      "delivery": "901700"
+    },
+    "demo_price": 1500,
+    "match": [
+      "麦辣鸡翅"
+    ]
+  },
+  {
+    "id": "corn-small",
+    "name": "玉米杯",
+    "spec": "小杯",
+    "label": "玉米杯（小杯）",
+    "category": "snack",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260101/product/MS_4437_600.png",
+    "aliases": [
+      "小杯玉米杯",
+      "玉米杯(小)"
+    ],
+    "codes": {
+      "pickup": "4437",
+      "delivery": "904437"
+    },
+    "demo_price": 1000,
+    "match": []
+  },
+  {
+    "id": "apple-juice",
+    "name": "100%苹果汁",
+    "spec": "盒装",
+    "label": "100%苹果汁（盒装）",
+    "category": "drink",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20250430/product/MS_6362_600_1745552990018.png",
+    "aliases": [
+      "100% 苹果汁(盒装)"
+    ],
+    "codes": {
+      "pickup": "6362",
+      "delivery": "901027"
+    },
+    "demo_price": 1200,
+    "match": []
+  },
+  {
+    "id": "pineapple-pie",
+    "name": "菠萝派",
+    "spec": "1个",
+    "label": "菠萝派（1个）",
+    "category": "dessert",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/ProductPool/product/MS_904105_600.png",
+    "aliases": [
+      "菠萝派"
+    ],
+    "codes": {
+      "pickup": "9900008752",
+      "delivery": "904105"
+    },
+    "demo_price": 800,
+    "match": []
+  },
+  {
+    "id": "taro-pie",
+    "name": "香芋派",
+    "spec": "1个",
+    "label": "香芋派（1个）",
+    "category": "dessert",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/ProductPool/product/MS_904106_600.png",
+    "aliases": [
+      "香芋派"
+    ],
+    "codes": {
+      "pickup": "9900008752",
+      "delivery": "904106"
+    },
+    "demo_price": 800,
+    "match": []
+  },
+  {
+    "id": "zero-medium",
+    "name": "无糖可口可乐",
+    "spec": "中杯",
+    "label": "无糖可口可乐（中杯）",
+    "category": "drink",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/ProductPool/product/MS_903071_600.png",
+    "aliases": [
+      "无糖可口可乐中杯",
+      "无糖可口可乐(中杯)"
+    ],
+    "codes": {
+      "pickup": "9900008751",
+      "delivery": "903071"
+    },
+    "demo_price": 1000,
+    "match": []
+  },
+  {
+    "id": "orange",
+    "name": "黄金橙橙",
+    "spec": "1杯",
+    "label": "黄金橙橙（1杯）",
+    "category": "drink",
+    "image": "https://menu-img.mcd.cn/pcm/prod/menu/20240904/product/MS_2430_600.png",
+    "aliases": [
+      "【美汁源】“黄金橙橙”"
+    ],
+    "codes": {
+      "pickup": "2430",
+      "delivery": "906352"
+    },
+    "demo_price": 1300,
+    "match": []
+  }
+]

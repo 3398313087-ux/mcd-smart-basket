@@ -21,8 +21,11 @@ from demo import snapshot, simulate_quotes
 from mcp_readonly import Client
 from mcd_adapter import build_price_arguments, normalize_quote
 
-FOODS = {'burger':'麦辣鸡腿汉堡','fries-medium':'中薯条','cola-medium':'中杯可乐','nuggets-5':'5块麦乐鸡'}
-ALIASES = {'麦辣鸡腿汉堡':'burger','中薯条':'fries-medium','薯条中':'fries-medium','可乐中杯':'cola-medium','可口可乐中杯':'cola-medium','可口可乐(中杯)':'cola-medium','麦乐鸡5块':'nuggets-5','麦乐鸡4块':'nuggets-4'}
+CATALOG=json.loads((Path(__file__).parent/'catalog.json').read_text())
+FOODS={f['id']:f['label'] for f in CATALOG}
+ALIASES={name:f['id'] for f in CATALOG for name in f['aliases']}
+ALIASES['麦乐鸡4块']='nuggets-4'
+DEFAULT_DEMAND={'burger':1,'fries-medium':1,'cola-medium':1,'nuggets-5':1}
 SESSION = secrets.token_urlsafe(32)
 BUSY = threading.Lock()
 JOBS = {}
@@ -57,26 +60,37 @@ def modifications(detail):
             if key: values.append({'code':v['code'],'key':key,'quantity':q})
     return {'modification':{'values':values}} if values else {}
 
-def compose_detail(d,demand):
+def compose_variants(d,demand):
+    """Enumerate supported fixed configurations, preserving drink/flavour identity."""
+    from itertools import product
+    from math import prod
     selection={'productCode':d['code'],**modifications(d)}
-    foods=Counter(); diff=Decimal(0)
     if not d.get('rounds'):
-        foods[ALIASES[d['name']]]=1
-    else:
-        rounds=[]
-        for r in d['rounds']:
-            choices=[c for c in r['choices'] if ALIASES.get(c['name']) in demand]
-            if not choices: choices=[c for c in r['choices'] if c.get('isDefault')==1 and c['name'] in ALIASES]
-            if not choices: raise ValueError('套餐包含尚未支持的餐品')
-            c=choices[0]; q=r.get('quantity') or r['minQuantity']
-            if not r['minQuantity']<=q<=r['maxQuantity'] or (c.get('maxQuantity', -1) >= 0 and q>c['maxQuantity']): raise ValueError('套餐数量不匹配')
+        return [({ALIASES[d['name']]:1},selection,Decimal(0))]
+    groups=[]
+    for r in d['rounds']:
+        choices=[c for c in r['choices'] if ALIASES.get(c['name']) in demand]
+        if not choices:choices=[c for c in r['choices'] if c.get('isDefault')==1 and c['name'] in ALIASES]
+        q=r.get('quantity') or r['minQuantity']
+        choices=[c for c in choices if r['minQuantity']<=q<=r['maxQuantity'] and (c.get('maxQuantity',-1)<0 or q<=c['maxQuantity'])]
+        if not choices:raise ValueError('套餐包含尚未支持的餐品或数量')
+        groups.append([(r,c,q) for c in choices])
+    if prod(map(len,groups))>64:raise ValueError('套餐配置过多，未纳入本轮')
+    variants=[]
+    # No mixed choices inside a multi-unit round.
+    for selected in product(*groups):
+        foods=Counter();rounds=[];diff=Decimal(0)
+        for r,c,q in selected:
             foods[ALIASES[c['name']]]+=q
             rounds.append({'round':str(r['id']),'comboItemList':[{'code':c['code'],'quantity':q,**modifications(c)}]})
-            price=c.get('diffPrice','')
-            m=re.search(r'([+-])\s*¥\s*(\d+(?:\.\d+)?)',price)
+            m=re.search(r'([+-])\s*¥\s*(\d+(?:\.\d+)?)',c.get('diffPrice',''))
             if m:diff+=Decimal(m[2])*(1 if m[1]=='+' else -1)*q
-        selection['roundList']=rounds
-    return dict(foods),selection,diff
+        variants.append((dict(foods),dict(selection,roundList=rounds),diff))
+    return variants
+
+def compose_detail(d,demand):
+    return compose_variants(d,demand)[0]
+
 
 def live_snapshot(body,progress):
     mode=body['mode']; private=ROOT/'private'
@@ -94,27 +108,43 @@ def live_snapshot(body,progress):
         old_id=old[0]['addressId'] if old else None
         if not old_id or not any(a['addressId']==old_id for a in current):raise ValueError('已绑定地址发生变化，请重新选择地址')
         stores=client.call('delivery-query-stores',{'addressId':old_id,'beType':2})['structuredContent']['data']
-        matching=[s for s in stores if s['storeCode']==context['store_id'] and s['beCode']==context['be_code']]
-        if not matching:raise ValueError('该地址当前没有匹配的配送门店，请重新选择')
-        args['beCode']=context['be_code']
+        if not stores:raise ValueError('该地址当前没有可用配送门店')
+        store=next((s for s in stores if s['storeCode']==context['store_id']),stores[0])
+        context.update(store_id=store['storeCode'],store_name=store['storeName'],be_code=store['beCode'])
+        args.update(storeCode=context['store_id'],beCode=context['be_code'])
     progress('获取最新菜单和已有优惠券')
     menu=client.call('query-meals',args)['structuredContent']
     coupons=client.call('query-store-coupons',args)['structuredContent']['data']
     cmap={p['productCode']:(i,c) for i,c in enumerate(coupons) for p in c.get('products',[])}
-    offers=[]; skipped=0
-    for index,old in enumerate(data['offers']):
-        progress(f'核对套餐组成 {index+1}/{len(data["offers"])}')
-        code=old['official_selection']['productCode']
-        coupon=cmap.get(code) if old.get('coupon_usage') else None
-        if (old.get('coupon_usage') and not coupon) or (not old.get('coupon_usage') and code not in menu['data']['meals']):skipped+=1;continue
+    selected=[f for f in CATALOG if f['id'] in body['demand']]
+    # Singles first: a large catalog must never crowd out the baseline.
+    codes=list(dict.fromkeys(f['codes'][mode] for f in selected))
+    patterns=[word for f in selected for word in f['match']]
+    related=[code for code,m in menu['data']['meals'].items() if any(word in m['name'] for word in patterns)]
+    old_codes=[o['official_selection']['productCode'] for o in data['offers']]
+    all_codes=list(dict.fromkeys(codes+related+list(cmap)+old_codes))
+    codes=all_codes[:24];offers=[];skipped=max(0,len(all_codes)-len(codes))
+    for index,code in enumerate(codes):
+        progress(f'核对相关餐品 {index+1}/{len(codes)}')
+        coupon=cmap.get(code)
+        if not coupon and code not in menu['data']['meals']:skipped+=1;continue
         detail=client.call('query-meal-detail',dict(args,code=code))['structuredContent']['data']
-        try: foods,selection,diff=compose_detail(detail,body['demand'])
+        try:variants=compose_variants(detail,body['demand'])
         except (KeyError,ValueError):skipped+=1;continue
-        row={'id':code,'name':detail['name'],'items':foods,'price_cents':max(0,int((Decimal(menu['data']['meals'].get(code,{}).get('currentPrice','0'))+diff)*100)), 'max_quantity':2,'official_selection':selection}
-        if coupon:
-            i,c=coupon; row['coupon_usage']={f'coupon-{i}':1}; row['max_quantity']=1
-            row['name']='已有券：'+row['name'];selection.update(couponId=c['couponId'],couponCode=c['couponCode'])
-        offers.append(row)
+        for variant,(foods,selection,diff) in enumerate(variants):
+            # Ignore configurations that cannot fit the user's extra-food allowance.
+            if sum(max(0,n-body['demand'].get(k,0)) for k,n in foods.items())>data['max_extra_units']:continue
+            if not any(k in body['demand'] for k in foods):continue
+            if len(offers)>=80:skipped+=1;continue
+            name=FOODS.get(next(iter(foods)),detail['name']) if sum(foods.values())==1 else detail['name']
+            row={'id':code+'-'+str(variant),'name':name,'items':foods,
+                 'price_cents':max(0,int((Decimal(menu['data']['meals'].get(code,{}).get('currentPrice','0'))+diff)*100)),
+                 'max_quantity':2,'official_selection':selection}
+            if coupon:
+                i,c=coupon;row['coupon_usage']={f'coupon-{i}':1};row['max_quantity']=1
+                row['name']='已有券：'+row['name'];selection.update(couponId=c['couponId'],couponCode=c['couponCode'])
+            offers.append(row)
+    data['labels'].update(FOODS)
     data.update(offers=offers,coupon_limits={f'coupon-{i}':1 for i,_ in enumerate(coupons)},captured_at=datetime.now(timezone.utc).isoformat())
     return data,client,skipped
 
@@ -139,12 +169,24 @@ def public_result(data,result):
             'candidates':result['candidate_count'],'priced':result['priced_count'],'unquoted':result['unquoted_count'],
             'invalid':len(result['invalid']),'complete':result['search_complete'],'captured_at':data['captured_at']}
 
+def demo_snapshot(body):
+    data=snapshot(body['mode']);data['demand']=body['demand'];data['max_extra_units']=int(body['extras'])
+    data['labels'].update(FOODS)
+    for f in CATALOG:
+        if f['id'] in DEFAULT_DEMAND:continue
+        data['offers'].append({'id':'demo-'+f['id'],'name':f['label']+'单点','items':{f['id']:1},'price_cents':f['demo_price'],'max_quantity':2})
+        if f['category']=='burger':
+            for drink in ['cola-medium','zero-medium']:
+                data['offers'].append({'id':'demo-meal-'+f['id']+'-'+drink,'name':f['name']+'中套餐','items':{f['id']:1,'fries-medium':1,drink:1},'price_cents':f['demo_price']+900,'max_quantity':2})
+    data['offers']=[o for o in data['offers'] if any(k in body['demand'] for k in o['items']) and sum(max(0,n-body['demand'].get(k,0)) for k,n in o['items'].items())<=data['max_extra_units']]
+    return data
+
 def compare(body,progress=lambda _:None):
     validate_request(body)
     if body['mode']=='both':
         return compare_both(body,progress)
     if body['source']=='demo':
-        data=snapshot(body['mode']);data['demand']=body['demand'];data['max_extra_units']=int(body['extras'])
+        data=demo_snapshot(body)
         search=enumerate_plans(data);quotes=simulate_quotes(data,search);skipped=0
     else:
         data,client,skipped=live_snapshot(body,progress)
@@ -186,6 +228,7 @@ class Handler(BaseHTTPRequestHandler):
     def valid_host(self):return self.headers.get('Host') in (f'127.0.0.1:{self.server.server_port}',f'localhost:{self.server.server_port}')
     def do_GET(self):
         if not self.valid_host():return self.reply(403,{'error':'仅允许本机访问'})
+        if self.path=='/api/catalog':return self.reply(200,[{k:f[k] for k in ('id','name','spec','label','category','image')} for f in CATALOG])
         if self.path=='/api/status':return self.reply(200,{'session':SESSION,'live_ready':all((ROOT/'private'/n).is_file() for n in ['mcd-token','pickup-snapshot.json','delivery-snapshot.json']),'store':'北京海淀镇餐厅'})
         if self.path.startswith('/api/jobs/'):
             if self.headers.get('X-Session')!=SESSION:return self.reply(403,{'error':'请刷新页面'})
