@@ -6,7 +6,7 @@ ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('basket_web',ROOT/'web/server.py')
 web=importlib.util.module_from_spec(spec);spec.loader.exec_module(web)
 class WebTests(unittest.TestCase):
-    def body(self,**kwargs):return dict(source='demo',mode='delivery',demand={k:1 for k in web.FOODS},extras=True,**kwargs)
+    def body(self,**kwargs):return dict(source='demo',mode='delivery',demand=dict(web.DEFAULT_DEMAND),extras=True,**kwargs)
     def test_demo_fee_and_extra_savings(self):
         r=web.compare(self.body());self.assertEqual(r['exact'][0]['total'],4700);self.assertEqual(r['extras'][0]['total'],4600)
         self.assertEqual(r['exact'][0]['packing'],100)
@@ -34,7 +34,7 @@ class WebTests(unittest.TestCase):
         contents=Counter()
         for item in p['items']:
             for food in item['contents']:contents[food['name']]+=food['quantity']
-        self.assertEqual(contents,{name:1 for name in web.FOODS.values()})
+        self.assertEqual(contents,{web.FOODS[k]:1 for k in web.DEFAULT_DEMAND})
         self.assertEqual(p['food_total']+p['delivery']+p['packing'],p['total'])
     def test_empty_and_malformed_demand(self):
         for d in [{},{'burger':True},{'burger':3},{'unknown':1},{'burger':-1}]:
