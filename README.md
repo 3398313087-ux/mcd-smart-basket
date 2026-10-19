@@ -31,12 +31,13 @@ python3 web/server.py
 
 截图中的演示结果为模拟价格。餐品图片使用麦当劳 MCP 返回的官方菜单图片地址，图片权利归原权利人，不适用本项目代码的 MIT 许可。
 
-启动：`python3 web/server.py`，然后打开 **http://127.0.0.1:8765**。Mac 也可运行 `bash 打开网页版.command`。
+启动：`python3 web/server.py`，然后打开 [http://127.0.0.1:8765](http://127.0.0.1:8765)。Mac 也可运行 `bash 打开网页版.command`。
 
 - 直接调整16种餐品的数量（每种0–2份），切换自取、外送或“一起比”，选择严格买齐或最多多1份。
 - “一起比”用同一份食品清单，分别查询两种方式的菜单、券和整单费用，展示含费用的价差；点击任一方式查看详细买法。某一方式查询失败时保留另一方式结果，不补造价格。
 - 展开“套餐怎么选”可看到每个套餐的具体组成、数量、是否使用已有券，以及商品实付和配送/包装费用；复制清单也包含这些组成。
 - 比较结果展示套餐补单清单、总额、相比单点的节省额以及已包含的配送/包装费；可以复制购买清单。
+- 刷新后保留选餐数量、用餐方式和多买开关；搜索覆盖全部分类，“示例”一键恢复默认清单。本机浏览器仅保存选餐偏好，不保存报价或账号资料。
 - 默认模拟演示，不需要登录；所有模拟金额均明确标注为虚构。
 - 真实查询使用本机 Token 和 `private/pickup-snapshot.json`、`private/delivery-snapshot.json` 中已配置的门店及套餐范围。请先让助手按 `skills/mcd-smart-basket/references/live-workflow.md` 准备快照；外送还需该次已授权地址查询的 `private/addresses-response.json`。这些账号文件不随仓库发布。
 - 每轮重新读取官方菜单、可用券和套餐详情，按所选食品筛选最多24个相关商品详情，再对每种方式最多10个候选调用官方整单计价；没有用旧报价冒充实时价格。外送先确认已授权地址仍存在，再查询当前可配送门店：优先原门店；原门店不在列表时使用官方返回的首个门店，并在结果中显示名称。每轮只核对已收集的套餐配置，不扫描全店。
@@ -139,7 +140,7 @@ python3 -m unittest discover -s tests -v
 
 参赛账号：`3398313087-ux`。公开仓库：[mcd-smart-basket](https://github.com/3398313087-ux/mcd-smart-basket)。
 
-本仓库包含 README、MCP 接入说明、环境变量配置示例、源代码和官方原样参赛声明。`SUBMISSION.md` 是发布与报名草稿，不表示已报名。未使用 WorkBuddy，因此未生成 `workbuddy.md` 或声称符合其专项奖励。
+本仓库包含 README、MCP 接入说明、环境变量配置示例、源代码和官方原样参赛声明。已提交[官方报名 Issue #895](https://github.com/M-China/mcd-developer-innovation-challenge/issues/895)，校验状态见 `SUBMISSION.md`。未使用 WorkBuddy，因此未生成 `workbuddy.md` 或声称符合其专项奖励。
 
 官方来源：[比赛仓库](https://github.com/M-China/mcd-developer-innovation-challenge) · [活动规则](https://github.com/M-China/mcd-developer-innovation-challenge/blob/main/activityGuidelines.md) · [MCP 接入指南](https://github.com/M-China/mcd-mcp-server)。
 
